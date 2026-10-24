@@ -1,9 +1,8 @@
-"""Graba cada minuto el interés abierto (open interest), el funding y el precio de cada moneda en
-data/oi/<MONEDA>.csv. Hyperliquid no da historial de interés abierto: hay que grabarlo uno mismo,
-y cuantas más semanas grabe, mejor. Dejalo corriendo (Ctrl+C para cortar; al volver a correrlo sigue
-agregando filas).
+"""Records open interest, funding and price for each coin every minute into data/oi/<COIN>.csv.
+Hyperliquid has no open interest history, so you have to record it yourself: the more weeks, the
+better. Leave it running (Ctrl+C to stop; running it again keeps appending rows).
 
-Uso:  python scripts/collector.py
+Usage:  python scripts/collector.py
 """
 import csv
 import time
@@ -13,7 +12,7 @@ from pathlib import Path
 import requests
 
 API = "https://api.hyperliquid.xyz/info"
-COINS = ["BTC", "ETH", "SOL"]
+COINS = ["HYPE", "BTC", "ETH", "SOL"]
 OUT = Path(__file__).resolve().parent.parent / "data" / "oi"
 FIELDS = ["time", "markPx", "openInterest", "funding", "dayNtlVlm"]
 
@@ -35,13 +34,13 @@ def snapshot() -> None:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    print("Grabando cada minuto en", OUT, "(Ctrl+C para cortar)")
+    print("Recording every minute into", OUT, "(Ctrl+C to stop)")
     while True:
         try:
             snapshot()
-        except Exception as e:  # un error de red no corta la grabación
-            print("error, reintento en un minuto:", e)
-        time.sleep(60 - time.time() % 60)  # al inicio de cada minuto
+        except Exception as e:  # a network error does not stop the recording
+            print("error, retrying in a minute:", e)
+        time.sleep(60 - time.time() % 60)  # at the start of every minute
 
 
 if __name__ == "__main__":

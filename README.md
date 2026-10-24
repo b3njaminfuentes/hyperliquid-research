@@ -39,7 +39,7 @@ hyperliquid-research/
 ├── README.md              ← this file: the project, the method and (at the end) the results
 ├── requirements.txt       ← Python libraries used
 ├── data/
-│   ├── BTC.csv, ETH.csv, SOL.csv   ← hourly price and funding (~200 days)
+│   ├── HYPE.csv, BTC.csv, ETH.csv, SOL.csv   ← hourly price and funding (~200 days)
 │   └── oi/                ← open interest recorded by collector.py
 ├── scripts/
 │   ├── download.py        ← pulls hourly price and funding from the Hyperliquid API

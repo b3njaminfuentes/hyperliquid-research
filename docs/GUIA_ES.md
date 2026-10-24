@@ -40,7 +40,7 @@ hyperliquid-research/
 ├── docs/GUIA_ES.md        ← esta guía
 ├── requirements.txt       ← las librerías de Python que usa
 ├── data/                  ← los datos
-│   ├── BTC.csv, ETH.csv, SOL.csv   ← precio y funding de cada hora
+│   ├── HYPE.csv, BTC.csv, ETH.csv, SOL.csv   ← precio y funding de cada hora
 │   └── oi/                ← interés abierto grabado por collector.py
 ├── scripts/
 │   ├── download.py        ← baja de la API de Hyperliquid precio y funding por hora

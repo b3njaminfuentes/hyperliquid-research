@@ -1,7 +1,7 @@
-"""Descarga de Hyperliquid el precio por hora y el funding rate de cada moneda, y los guarda
-en data/<MONEDA>.csv (una tabla: una fila por hora, columnas time, close, fundingRate).
+"""Downloads hourly price and funding rate for each coin from Hyperliquid and saves them to
+data/<COIN>.csv (one row per hour; columns time, close, fundingRate).
 
-Uso:  python scripts/download.py
+Usage:  python scripts/download.py
 """
 import time
 from pathlib import Path
@@ -10,14 +10,14 @@ import pandas as pd
 import requests
 
 API = "https://api.hyperliquid.xyz/info"
-COINS = ["BTC", "ETH", "SOL"]
-DAYS = 200  # la API da hasta 5000 velas de 1 hora (~208 días)
+COINS = ["HYPE", "BTC", "ETH", "SOL"]  # HYPE: Hyperliquid's own token
+DAYS = 200  # the API returns up to 5000 one-hour candles (~208 days)
 OUT = Path(__file__).resolve().parent.parent / "data"
 
 
 def funding(coin: str, start_ms: int) -> pd.DataFrame:
-    """El funding se paga cada hora. La API devuelve 500 registros por consulta: pedimos tandas
-    hasta llegar al presente."""
+    """Funding is paid every hour. The API returns 500 records per call: page through them
+    up to the present."""
     rows = []
     while True:
         r = requests.post(API, json={"type": "fundingHistory", "coin": coin, "startTime": start_ms}, timeout=30).json()
@@ -27,7 +27,7 @@ def funding(coin: str, start_ms: int) -> pd.DataFrame:
         start_ms = r[-1]["time"] + 1
         if len(r) < 500:
             break
-        time.sleep(0.2)  # no saturar la API
+        time.sleep(0.2)  # be gentle with the API
     df = pd.DataFrame(rows)
     df["time"] = pd.to_datetime(df["time"], unit="ms").dt.floor("h")
     df["fundingRate"] = df["fundingRate"].astype(float)
@@ -35,7 +35,7 @@ def funding(coin: str, start_ms: int) -> pd.DataFrame:
 
 
 def candles(coin: str, start_ms: int, end_ms: int) -> pd.DataFrame:
-    """Velas de 1 hora; nos quedamos con el precio de cierre."""
+    """One-hour candles; keep the closing price."""
     req = {"coin": coin, "interval": "1h", "startTime": start_ms, "endTime": end_ms}
     r = requests.post(API, json={"type": "candleSnapshot", "req": req}, timeout=30).json()
     df = pd.DataFrame(r)
@@ -51,9 +51,9 @@ def main() -> None:
     for coin in COINS:
         price = candles(coin, start, now)
         fund = funding(coin, start)
-        df = price.merge(fund, on="time", how="left")  # una fila por hora con las dos columnas
+        df = price.merge(fund, on="time", how="left")  # one row per hour with both columns
         df.to_csv(OUT / f"{coin}.csv", index=False)
-        print(f"{coin}: {len(df)} horas, desde {df.time.min()} hasta {df.time.max()}")
+        print(f"{coin}: {len(df)} hours, from {df.time.min()} to {df.time.max()}")
 
 
 if __name__ == "__main__":
