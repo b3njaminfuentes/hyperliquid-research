@@ -1,151 +1,141 @@
 # Hyperliquid Research
 
-Research cuantitativo público sobre el mercado de futuros perpetuos de **Hyperliquid**.
+Open quantitative research on **Hyperliquid** perpetual futures.
 
-**Pregunta principal:** ¿el *funding rate* extremo predice hacia dónde se mueve el precio en las próximas horas?
+**Main question:** does an extreme *funding rate* predict where the price moves over the next hours?
 
-**Pregunta siguiente:** ¿los saltos de *interés abierto* y las *liquidaciones* anticipan movimientos fuertes (volatilidad)?
+**Next question:** do jumps in *open interest* and *liquidations* anticipate strong moves (volatility)?
 
-> Estado: 🟡 en curso. Todo se publica, incluso lo que no funcione. "No hay señal" también es un resultado.
-
----
-
-## 1. Qué es todo esto (en simple)
-
-**Hyperliquid** es un exchange donde la gente opera **futuros perpetuos** ("perps"): apuestas con apalancamiento a que una moneda sube (**long**) o baja (**short**), sin fecha de vencimiento.
-
-**Funding rate.** Como un perpetuo no vence, hace falta algo que mantenga su precio pegado al precio real de la moneda. Ese algo es el *funding*: un pago que se hacen entre sí longs y shorts **cada hora**.
-- Funding **positivo**: los longs les pagan a los shorts. Hay más gente apostando a la suba de lo normal.
-- Funding **negativo**: los shorts les pagan a los longs. Hay más gente apostando a la baja.
-
-**Interés abierto (open interest).** Cuántos contratos hay abiertos en total en ese momento. Si sube, entra dinero nuevo a apostar; si baja, la gente cierra posiciones.
-
-**Liquidación.** Cuando alguien apalancado pierde demasiado, el exchange le cierra la posición a la fuerza. Muchas liquidaciones juntas empujan el precio todavía más en la misma dirección (efecto cascada).
-
-### La idea que queremos comprobar
-
-Si el funding está **muy alto**, hay demasiada gente apostando a la suba y pagando caro por sostenerla. Si el precio no acompaña, empiezan a cerrar o los liquidan, y eso **empuja el precio para abajo**. Al revés con funding muy negativo.
-
-¿Pasa de verdad, o es un mito? Eso es lo que mide este proyecto. Ya sabemos que muchas ideas "obvias" no se cumplen en los datos: por eso se miden.
+> Status: 🟡 in progress. Everything gets published, including what doesn't work. "No signal" is a result too.
+>
+> 🇪🇸 Guía en español: [docs/GUIA_ES.md](docs/GUIA_ES.md)
 
 ---
 
-## 2. Qué hay en el proyecto
+## 1. What this is about
+
+**Hyperliquid** is an exchange where people trade **perpetual futures** ("perps"): leveraged bets that a coin goes up (**long**) or down (**short**), with no expiry date.
+
+**Funding rate.** A perp never expires, so something has to keep its price tied to the coin's real price. That something is *funding*: a payment between longs and shorts **every hour**.
+- **Positive** funding: longs pay shorts. More people than usual are betting on a rise.
+- **Negative** funding: shorts pay longs. More people than usual are betting on a fall.
+
+**Open interest.** How many contracts are open at a given moment. Rising: new money is coming in. Falling: people are closing positions.
+
+**Liquidation.** When a leveraged trader loses too much, the exchange closes the position by force. Many liquidations at once push the price further the same way (a cascade).
+
+### The idea being tested
+
+When funding is **very high**, too many people are betting on a rise and paying a lot to hold it. If the price doesn't follow, they close or get liquidated, and that **pushes the price down**. The reverse with very negative funding.
+
+Does it actually happen, or is it a myth? That is what this project measures. Plenty of "obvious" ideas don't hold up in the data, which is why they get measured.
+
+---
+
+## 2. What's in the project
 
 ```
 hyperliquid-research/
-├── README.md              ← este archivo: el proyecto, el método y (al final) los resultados
-├── requirements.txt       ← las librerías de Python que usa
-├── data/                  ← los datos
-│   ├── BTC.csv, ETH.csv, SOL.csv   ← precio y funding de cada hora
-│   └── oi/                ← interés abierto grabado por collector.py
+├── README.md              ← this file: the project, the method and (at the end) the results
+├── requirements.txt       ← Python libraries used
+├── data/
+│   ├── BTC.csv, ETH.csv, SOL.csv   ← hourly price and funding (~200 days)
+│   └── oi/                ← open interest recorded by collector.py
 ├── scripts/
-│   ├── download.py        ← baja de la API de Hyperliquid precio y funding por hora
-│   ├── collector.py       ← graba el interés abierto cada minuto (dejarlo corriendo)
-│   └── make_notebooks.py  ← crea los notebooks (ya está hecho; no hace falta volver a correrlo)
-└── notebooks/
-    ├── 01_explorar.ipynb  ← mirar los datos: ¿están bien? gráficos
-    ├── 02_funding.ipynb   ← la pregunta: ¿el funding predice el precio?
-    └── 03_backtest.ipynb  ← la prueba honesta: ¿se podría ganar dinero con eso?
+│   ├── download.py        ← pulls hourly price and funding from the Hyperliquid API
+│   ├── collector.py       ← records open interest every minute (keep it running)
+│   └── make_notebooks.py  ← generates the notebooks (already done)
+├── notebooks/
+│   ├── 01_explorar.ipynb  ← look at the data: is it clean? charts
+│   ├── 02_funding.ipynb   ← the question: does funding predict the price?
+│   └── 03_backtest.ipynb  ← the honest test: could you make money with it?
+└── docs/
+    └── GUIA_ES.md         ← the full guide in Spanish
 ```
 
-**Glosario rápido**
-- **CSV:** una tabla guardada como texto (como un Excel simple). Cada línea es una fila.
-- **pandas:** la librería de Python para trabajar con tablas.
-- **Jupyter / notebook (.ipynb):** un cuaderno donde el código va en bloques; ejecutás un bloque y ves el resultado o el gráfico justo abajo.
-- **Los datos de este proyecto:** las últimas ~200 días (unas 4.800 horas). Para cada hora: el precio de la moneda y el funding de esa hora.
+**Data:** the last ~200 days (about 4,800 hours). For each hour: the coin's closing price and that hour's funding rate.
 
 ---
 
-## 3. Cómo usarlo
-
-Cada vez que abras la terminal:
+## 3. How to run it
 
 ```bash
 cd ~/hyperliquid-research
-source .venv/bin/activate     # activa el entorno del proyecto
+source .venv/bin/activate     # activate the project's environment
 ```
 
-| Para… | Comando |
+| To… | Command |
 |---|---|
-| Actualizar los datos | `python scripts/download.py` |
-| Grabar el interés abierto (dejarlo corriendo en otra terminal) | `python scripts/collector.py` |
-| Abrir los notebooks | `jupyter notebook` → se abre el navegador → carpeta `notebooks` |
+| Update the data | `python scripts/download.py` |
+| Record open interest (leave it running in another terminal) | `python scripts/collector.py` |
+| Open the notebooks | `jupyter notebook` → browser opens → `notebooks` folder |
 
-En un notebook: hacé clic en un bloque y apretá **Shift + Enter** para ejecutarlo. Ejecutalos en orden, de arriba hacia abajo.
+In a notebook, click a cell and press **Shift + Enter** to run it. Run them in order, top to bottom.
 
-Si alguna vez instalás todo desde cero: `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
-
----
-
-## 4. El research paso a paso (qué hacer y qué buscar)
-
-### Paso 1 · Conocer los datos (`01_explorar`)
-Ejecutá el notebook y anotá:
-- [ ] ¿Faltan horas (huecos)? ¿Cuántas?
-- [ ] ¿Hay movimientos raros (subas o caídas enormes en 1 hora)? Buscá esas fechas en X o en noticias: ¿fue un evento real?
-- [ ] ¿El funding suele ser positivo o negativo? ¿Cuándo tuvo picos?
-
-### Paso 2 · La pregunta (`02_funding`)
-El notebook ordena todas las horas de menor a mayor funding, las parte en 5 grupos iguales y calcula, para cada grupo, cuánto se movió el precio en las 8 horas siguientes.
-- [ ] Mirá el gráfico de 5 barras. **¿Bajan o suben de forma ordenada del grupo 1 al 5?** → posible señal. **¿Desordenadas o parecidas?** → no hay señal.
-- [ ] Repetí con `H = 4` y `H = 24` (cambiá el número en el notebook).
-- [ ] Mirá el resultado de ETH y SOL al final: **¿se repite el patrón?** Si solo aparece en una moneda, sospechá de casualidad.
-
-### Paso 3 · La prueba honesta (`03_backtest`)
-Simula operar con una regla simple: *si el funding está muy alto, apuesto a la baja 8 horas; si está muy bajo, a la suba*.
-- Elige el umbral mirando solo los **primeros 2/3** de los datos y lo prueba en el **último 1/3**, que nunca miró. **Solo cuenta el resultado de esa prueba.**
-- Descuenta comisiones (0,035 % por operación) y el funding pagado.
-- [ ] ¿Gana en el período de prueba, ya con comisiones?
-- [ ] ¿Funciona también en ETH y SOL y con otros horizontes (tabla de robustez)?
-- [ ] Si el Sharpe da altísimo (más de 2 o 3), **desconfiá**: casi siempre es un error.
-
-### Paso 4 · Interés abierto y liquidaciones (próximo)
-- Dejá `collector.py` grabando desde ya: necesita **4 a 6 semanas** de datos.
-- Pregunta: ¿un salto grande de interés abierto anticipa un movimiento fuerte en la próxima hora?
-- Hay que compararlo con una referencia simple: "la próxima hora se mueve igual que la última". Si el modelo no le gana a eso, no sirve.
-- Pendiente: investigar cómo obtener liquidaciones (websocket de trades de Hyperliquid).
-
-### Paso 5 · Escribir los resultados (sección 6 de este README)
-Pregunta, datos, método, 2 o 3 gráficos, **qué no funcionó** y conclusión con el nivel de confianza.
+Fresh install: `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
 
 ---
 
-## 5. Reglas del proyecto
+## 4. The research, step by step
 
-1. **Nunca usar el futuro.** Toda regla usa solo datos disponibles en ese momento. El retorno futuro se usa únicamente para medir.
-2. **Separar en el tiempo:** decidir con una parte de los datos, probar con otra que no se miró.
-3. **Siempre con comisiones.** Una estrategia que gana antes de comisiones y pierde después, no sirve.
-4. **Publicar lo que falla.** Un "no hay señal" bien hecho vale tanto como un hallazgo.
-5. **Cero dinero real.** Esto es research, no trading.
+### Step 1 · Know the data (`01_explorar`)
+- [ ] Are there missing hours (gaps)? How many?
+- [ ] Any odd moves (huge rises or drops in one hour)? Look those dates up: was it a real event?
+- [ ] Is funding usually positive or negative? When did it spike?
 
-**Errores típicos que hay que evitar:** usar datos del futuro sin darse cuenta; probar 50 variantes y mostrar solo la que ganó; olvidar comisiones; sacar conclusiones con pocas operaciones.
+### Step 2 · The question (`02_funding`)
+The notebook sorts every hour from lowest to highest funding, splits them into 5 equal groups and computes, for each group, how far the price moved over the next 8 hours.
+- [ ] Look at the 5-bar chart. **Do the bars fall or rise in order from group 1 to 5?** → possible signal. **Jumbled or similar?** → no signal.
+- [ ] Repeat with `H = 4` and `H = 24`.
+- [ ] Check ETH and SOL at the end: **does the pattern repeat?** If it shows up in only one coin, suspect chance.
+
+### Step 3 · The honest test (`03_backtest`)
+Simulates a simple rule: *if funding is very high, short for 8 hours; if very low, go long*.
+- The threshold is picked using only the **first 2/3** of the data and tested on the **last 1/3**, never seen before. **Only that test result counts.**
+- Costs: fees (0.035% per trade) and funding paid.
+- [ ] Does it make money in the test period, after costs?
+- [ ] Does it also work on ETH and SOL and at other horizons (robustness table)?
+- [ ] A very high Sharpe (above 2 or 3) almost always means a bug.
+
+### Step 4 · Open interest and liquidations (next)
+- `collector.py` must run for **4 to 6 weeks** first.
+- Question: does a big jump in open interest anticipate a strong move in the next hour?
+- Benchmark: "the next hour moves as much as the last one". A model that can't beat that is useless.
+- To do: find out how to get liquidations (Hyperliquid's trades websocket).
+
+### Step 5 · Write up the results (section 6)
 
 ---
 
-## 6. Resultados
+## 5. Rules
 
-*(Completar al terminar cada paso.)*
+1. **Never use the future.** Every rule uses only data available at that moment; future returns are only for measuring.
+2. **Split in time:** decide on one part of the data, test on another you never looked at.
+3. **Always after costs.**
+4. **Publish what fails.**
+5. **No real money.** This is research, not trading.
 
-| Paso | Resultado | Fecha |
+**Classic mistakes:** leaking future data without noticing; trying 50 variants and showing only the winner; forgetting costs; drawing conclusions from a handful of trades.
+
+---
+
+## 6. Results
+
+*(Filled in as each step is done.)*
+
+| Step | Result | Date |
 |---|---|---|
-| Datos | | |
-| ¿El funding predice el precio? | | |
-| Backtest (período de prueba) | | |
-| Robustez | | |
+| Data | | |
+| Does funding predict the price? | | |
+| Backtest (test period) | | |
+| Robustness | | |
 
-**Qué no funcionó y limitaciones:**
+**What didn't work and limitations:**
 
-**Conclusión:**
+**Conclusion:**
 
 ---
 
-## 7. Plan de publicación en X
+## Data source
 
-1. **Al empezar:** "Empiezo un research público: ¿el funding rate de Hyperliquid predice el precio? Publico todo, incluso lo que falle."
-2. **Durante:** un gráfico del notebook 01 o 02 con una frase de qué muestra.
-3. **Al final:** un hilo con la pregunta, el gráfico de las 5 barras, el resultado del backtest, lo que no funcionó y el link a este repositorio.
-
-## Datos
-
-Fuente: API pública de Hyperliquid (`https://api.hyperliquid.xyz/info`): `fundingHistory`, `candleSnapshot` (velas de 1 hora) y `metaAndAssetCtxs` (interés abierto actual).
+Hyperliquid public API (`https://api.hyperliquid.xyz/info`): `fundingHistory`, `candleSnapshot` (1-hour candles) and `metaAndAssetCtxs` (current open interest).
